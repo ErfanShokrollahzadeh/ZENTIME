@@ -8,6 +8,7 @@ class Product(models.Model):
     short_description = models.TextField(max_length=500, blank=True)
     is_exist = models.BooleanField(default=True)
     rating = models.FloatField(default=0.0)
+    image = models.ImageField(blank=True, null=True)
 
     def __str__(self):
         return self.title
