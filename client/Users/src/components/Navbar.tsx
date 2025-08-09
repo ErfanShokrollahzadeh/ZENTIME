@@ -10,7 +10,7 @@ export default function Navbar() {
     { name: "Home", href: "/" },
     { name: "Collection", href: "/#collection" },
     { name: "Why ZENTIME", href: "/#features" },
-    { name: "Contact", href: "#contact" },
+  { name: "Contact", href: "/contact" },
   ];
 
   return (
