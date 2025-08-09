@@ -34,6 +34,18 @@ export default function Navbar() {
             </Link>
           ))}
           <Link
+            href="/login"
+            className="text-sm text-zinc-700 transition hover:text-black dark:text-zinc-300 dark:hover:text-white"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/register"
+            className="inline-flex items-center rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-black transition hover:bg-zinc-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10"
+          >
+            Create account
+          </Link>
+          <Link
             href="#"
             className="inline-flex items-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-100"
           >
@@ -69,6 +81,20 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="rounded-md px-2 py-2 text-sm text-zinc-800 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800/60"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/register"
+              onClick={() => setOpen(false)}
+              className="inline-flex items-center justify-center rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-black hover:bg-zinc-100 dark:border-white/20 dark:text-white dark:hover:bg-zinc-800/60"
+            >
+              Create account
+            </Link>
             <Link
               href="#"
               onClick={() => setOpen(false)}
