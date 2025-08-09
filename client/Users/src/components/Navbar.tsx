@@ -46,10 +46,10 @@ export default function Navbar() {
             Create account
           </Link>
           <Link
-            href="#"
+            href="/products"
             className="inline-flex items-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-100"
           >
-            Shop now
+            Products
           </Link>
         </nav>
 

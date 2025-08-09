@@ -3,27 +3,31 @@ import SubscribeForm from "@/components/SubscribeForm";
 
 const products = [
   {
-    id: 1,
+  id: 1,
     name: "Eclipse Chrono",
     price: "$349",
+  slug: "eclipse-chrono",
     img: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1200&auto=format&fit=crop",
   },
   {
     id: 2,
     name: "Aurora Classic",
     price: "$289",
+  slug: "aurora-classic",
     img: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1200&auto=format&fit=crop",
   },
   {
     id: 3,
     name: "Nebula Steel",
     price: "$399",
+  slug: "nebula-steel",
     img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1200&auto=format&fit=crop",
   },
   {
     id: 4,
     name: "Zen Minimal",
     price: "$259",
+  slug: "zen-minimal",
     img: "https://images.unsplash.com/photo-1524594081293-190a2fe0baae?q=80&w=1200&auto=format&fit=crop",
   },
 ];
@@ -133,10 +137,10 @@ export default function Home() {
             </a>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p) => (
+      {products.map((p) => (
               <a
                 key={p.id}
-                href="#"
+        href={`/product/${p.slug}`}
                 className="group relative overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm transition hover:shadow-lg dark:border-white/10 dark:bg-zinc-900"
               >
                 <div className="relative aspect-[4/5]">
