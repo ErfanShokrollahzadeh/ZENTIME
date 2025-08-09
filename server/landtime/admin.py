@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product
+from .models import Product, Brand, Category, ProductImage
 
 
 @admin.register(Product)
@@ -13,6 +13,22 @@ class ProductAdmin(admin.ModelAdmin):
     def __str__(self):
         return self.title
 
+class BrandAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ('product', 'image')
+    search_fields = ('product__title',)
+
+
+admin.site.register(Brand, BrandAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(ProductImage, ProductImageAdmin)
 
 #username = admin
-#password = admin1234@
+#password = admin1234$
