@@ -8,7 +8,7 @@ export default function Navbar() {
 
   const navItems = [
     { name: "Home", href: "/" },
-    { name: "Collection", href: "/#collection" },
+  { name: "Collection", href: "/collection" },
     { name: "Why ZENTIME", href: "/#features" },
   { name: "Contact", href: "/contact" },
   ];
