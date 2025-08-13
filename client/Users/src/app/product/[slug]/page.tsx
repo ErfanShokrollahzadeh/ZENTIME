@@ -1,6 +1,7 @@
 import Image from "next/image";
 import ProductGallery from "@/components/product/ProductGallery";
 import AddToCart from "@/components/product/AddToCart";
+import { notFound } from "next/navigation";
 
 const mockProducts: Record<string, {
   name: string;
@@ -54,10 +55,12 @@ export function generateStaticParams() {
   return Object.keys(mockProducts).map((slug) => ({ slug }));
 }
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
-  const product = mockProducts[params.slug];
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  // Await params per Next.js async dynamic route API (prevents warning)
+  const { slug } = await params;
+  const product = mockProducts[slug];
 
-  if (!product) return <div className="mx-auto max-w-7xl px-6 py-16">Product not found.</div>;
+  if (!product) return notFound();
 
   return (
     <div className="bg-background">
