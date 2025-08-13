@@ -16,7 +16,7 @@ const slides: Slide[] = [
     id: 1,
     title: "Crafted for Everyday",
     tagline: "Premium materials. Minimalist form.",
-    img: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1200&auto=format&fit=crop",
+  img: "https://m.media-amazon.com/images/I/71Jdvtde4DL._SS1000_.jpg",
     accent: "from-amber-400/30 to-yellow-500/30",
   },
   {

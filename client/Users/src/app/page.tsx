@@ -8,7 +8,7 @@ const products = [
     name: "Eclipse Chrono",
     price: "$349",
   slug: "eclipse-chrono",
-    img: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1200&auto=format&fit=crop",
+  img: "https://m.media-amazon.com/images/I/71Jdvtde4DL._SS1000_.jpg",
   },
   {
     id: 2,
@@ -77,7 +77,7 @@ export default function Home() {
               <div className="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-tr from-amber-300/20 via-white/10 to-transparent blur-2xl" />
               <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl">
                 <Image
-                  src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1600&auto=format&fit=crop"
+                  src="https://m.media-amazon.com/images/I/71Jdvtde4DL._SS1000_.jpg"
                   alt="Hero watch"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"

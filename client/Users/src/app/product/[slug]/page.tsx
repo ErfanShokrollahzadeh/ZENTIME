@@ -17,7 +17,7 @@ const mockProducts: Record<string, {
     description:
       "A balanced chronograph with sapphire glass, 316L steel, and Swiss movement for daily precision.",
     images: [
-      { src: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1600&auto=format&fit=crop", alt: "Front view" },
+  { src: "https://m.media-amazon.com/images/I/71Jdvtde4DL._SS1000_.jpg", alt: "Front view" },
       { src: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1600&auto=format&fit=crop", alt: "Side view" },
       { src: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1600&auto=format&fit=crop", alt: "Wrist shot" },
     ],
