@@ -36,7 +36,7 @@ export default function Footer() {
             <div className="space-y-3">
               <h4 className="font-medium text-zinc-900 dark:text-zinc-100">Support</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Help Center</a></li>
+                <li><Link href="/help-center" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Help Center</Link></li>
                 <li><a href="#" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Warranty</a></li>
                 <li><a href="#" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Shipping</a></li>
               </ul>
