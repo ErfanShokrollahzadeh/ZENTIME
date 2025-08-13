@@ -38,15 +38,15 @@ export default function Footer() {
               <ul className="space-y-2">
                 <li><Link href="/help-center" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Help Center</Link></li>
                 <li><Link href="/warranty" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Warranty</Link></li>
-                <li><a href="#" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Shipping</a></li>
+                <li><Link href="/shipping" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Shipping</Link></li>
               </ul>
             </div>
             <div className="space-y-3">
               <h4 className="font-medium text-zinc-900 dark:text-zinc-100">Legal</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Privacy</a></li>
-                <li><a href="#" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Terms</a></li>
-                <li><a href="#" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Cookies</a></li>
+                <li><Link href="/privacy" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Privacy</Link></li>
+                <li><Link href="/terms" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Terms</Link></li>
+                <li><Link href="/cookies" className="text-zinc-600 transition hover:text-black dark:text-zinc-400 dark:hover:text-white">Cookies</Link></li>
               </ul>
             </div>
           </div>
