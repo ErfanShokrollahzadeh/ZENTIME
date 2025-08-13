@@ -127,7 +127,7 @@ export default function Home() {
               <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Signature Collection</h2>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Curated picks designed for every occasion.</p>
             </div>
-            <a href="#" className="inline-flex text-sm font-medium text-amber-600 hover:underline">View all</a>
+            <a href="/collection/signature" className="inline-flex text-sm font-medium text-amber-600 hover:underline">View all</a>
           </div>
           <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
             {/* Featured large card (first product) */}
