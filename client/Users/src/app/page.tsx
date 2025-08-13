@@ -1,5 +1,6 @@
 import Image from "next/image";
 import SubscribeForm from "@/components/SubscribeForm";
+import IntroSlider from "@/components/IntroSlider";
 
 const products = [
   {
@@ -35,6 +36,8 @@ const products = [
 export default function Home() {
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
+      {/* Intro Slider */}
+      <IntroSlider />
       {/* Hero */}
       <section className="relative isolate">
         <div
