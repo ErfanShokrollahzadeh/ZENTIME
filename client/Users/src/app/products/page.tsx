@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { CartIconButton } from "@/components/cart/CartIconButton";
 
 const products = [
   {
@@ -39,11 +40,12 @@ export default function ProductsPage() {
   return (
     <div className="bg-background">
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-        <div className="mb-8 flex items-end justify-between">
+        <div className="mb-8 flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-semibold sm:text-3xl">All products</h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Explore our full ZENTIME collection.</p>
           </div>
+          <CartIconButton size="sm" />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

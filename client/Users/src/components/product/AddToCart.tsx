@@ -1,18 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { useCart } from "@/components/cart/CartContext";
 
-export default function AddToCart({ price }: { price: string }) {
+interface AddToCartProps {
+  price: string;
+  id?: string; // product slug
+  name?: string;
+}
+
+export default function AddToCart({ price, id = "unknown", name = "Product" }: AddToCartProps) {
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
+  const { addItem } = useCart();
 
   function add() {
     setAdding(true);
     setTimeout(() => {
+      addItem({ id, name, price, qty });
       setAdding(false);
-      // TODO: Connect to cart state or backend.
-      alert(`Added ${qty} to cart`);
-    }, 600);
+    }, 400);
   }
 
   return (
