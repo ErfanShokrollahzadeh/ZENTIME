@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
@@ -82,6 +82,8 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     stock_qty = models.PositiveIntegerField(
         default=0, validators=[MinValueValidator(0)])
+    reserved_qty = models.PositiveIntegerField(default=0, validators=[
+                                               MinValueValidator(0)], help_text="Units reserved but not yet purchased")
     rating = models.FloatField(default=0.0, validators=[
                                MinValueValidator(0.0), MaxValueValidator(5.0)])
     rating_count = models.PositiveIntegerField(default=0)
@@ -157,7 +159,11 @@ class Product(models.Model):
 
     @property
     def in_stock(self):
-        return self.stock_qty > 0 and self.is_active and self.is_exist
+        return (self.stock_qty - self.reserved_qty) > 0 and self.is_active and self.is_exist
+
+    @property
+    def available_qty(self):
+        return max(0, self.stock_qty - self.reserved_qty)
 
     @property
     def primary_image(self):
@@ -182,6 +188,37 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         return f"/products/{self.slug}/"
+
+    # Inventory helpers
+    def reserve(self, qty: int):
+        if qty <= 0:
+            raise ValueError("qty must be > 0")
+        with transaction.atomic():
+            p = Product.objects.select_for_update().get(pk=self.pk)
+            if p.available_qty < qty:
+                raise ValueError("Not enough stock to reserve")
+            p.reserved_qty += qty
+            p.save(update_fields=['reserved_qty', 'updated_at'])
+        return True
+
+    def release(self, qty: int):
+        if qty <= 0:
+            return
+        with transaction.atomic():
+            p = Product.objects.select_for_update().get(pk=self.pk)
+            p.reserved_qty = max(0, p.reserved_qty - qty)
+            p.save(update_fields=['reserved_qty', 'updated_at'])
+
+    def commit_sale(self, qty: int):
+        if qty <= 0:
+            raise ValueError("qty must be > 0")
+        with transaction.atomic():
+            p = Product.objects.select_for_update().get(pk=self.pk)
+            if p.available_qty < qty:
+                raise ValueError("Not enough stock to sell")
+            p.stock_qty -= qty
+            p.reserved_qty = max(0, p.reserved_qty - qty)
+            p.save(update_fields=['stock_qty', 'reserved_qty', 'updated_at'])
 
     class Meta:
         indexes = [
@@ -220,8 +257,147 @@ class ProductImage(models.Model):
         # Default alt text
         if not self.alt_text:
             self.alt_text = self.product.title
-        super().save(*args, **kwargs)
-        # Ensure only one primary per product (if this one is primary)
         if self.is_primary:
-            self.product.images.exclude(pk=self.pk).filter(
-                is_primary=True).update(is_primary=False)
+            # Demote others first
+            self.product.images.filter(is_primary=True).exclude(
+                pk=self.pk).update(is_primary=False)
+        super().save(*args, **kwargs)
+        # Ensure at least one primary
+        if not self.product.images.filter(is_primary=True).exists():
+            if not self.is_primary:
+                self.is_primary = True
+                super().save(update_fields=['is_primary'])
+
+
+class Attribute(models.Model):
+    name = models.CharField(max_length=120, unique=True)
+    slug = models.SlugField(max_length=140, unique=True, blank=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.name) or 'attr'
+            slug = base
+            i = 1
+            while Attribute.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{i}"
+                i += 1
+            self.slug = slug
+        return super().save(*args, **kwargs)
+
+
+class AttributeValue(models.Model):
+    attribute = models.ForeignKey(
+        Attribute, on_delete=models.CASCADE, related_name='values')
+    value = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=160, unique=True, blank=True)
+
+    class Meta:
+        unique_together = ('attribute', 'value')
+        ordering = ['attribute__name', 'value']
+
+    def __str__(self):
+        return f"{self.attribute.name}: {self.value}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(f"{self.attribute.name}-{self.value}") or 'attr-val'
+            slug = base
+            i = 1
+            while AttributeValue.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{i}"
+                i += 1
+            self.slug = slug
+        return super().save(*args, **kwargs)
+
+
+class ProductVariant(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='variants')
+    title = models.CharField(max_length=200, blank=True)
+    sku = models.CharField(max_length=64, unique=True, blank=True)
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    stock_qty = models.PositiveIntegerField(default=0)
+    reserved_qty = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    options = models.ManyToManyField(
+        AttributeValue, related_name='variants', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['product__id', 'id']
+        indexes = [
+            models.Index(fields=['sku']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return self.title or f"Variant {self.pk} of {self.product.title}"
+
+    @property
+    def available_qty(self):
+        return max(0, self.stock_qty - self.reserved_qty)
+
+    def save(self, *args, **kwargs):
+        if not self.sku:
+            base = (self.product.sku or 'VAR')[:10]
+
+            def gen():
+                return f"{base}-{''.join(random.choices(string.ascii_uppercase + string.digits, k=3))}"
+            candidate = gen()
+            while ProductVariant.objects.filter(sku=candidate).exclude(pk=self.pk).exists():
+                candidate = gen()
+            self.sku = candidate
+        return super().save(*args, **kwargs)
+
+    def reserve(self, qty: int):
+        if qty <= 0:
+            raise ValueError('qty must be > 0')
+        with transaction.atomic():
+            v = ProductVariant.objects.select_for_update().get(pk=self.pk)
+            if v.available_qty < qty:
+                raise ValueError('Not enough variant stock')
+            v.reserved_qty += qty
+            v.save(update_fields=['reserved_qty', 'updated_at'])
+
+    def release(self, qty: int):
+        if qty <= 0:
+            return
+        with transaction.atomic():
+            v = ProductVariant.objects.select_for_update().get(pk=self.pk)
+            v.reserved_qty = max(0, v.reserved_qty - qty)
+            v.save(update_fields=['reserved_qty', 'updated_at'])
+
+    def commit_sale(self, qty: int):
+        if qty <= 0:
+            raise ValueError('qty must be > 0')
+        with transaction.atomic():
+            v = ProductVariant.objects.select_for_update().get(pk=self.pk)
+            if v.available_qty < qty:
+                raise ValueError('Not enough variant stock to sell')
+            v.stock_qty -= qty
+            v.reserved_qty = max(0, v.reserved_qty - qty)
+            v.save(update_fields=['stock_qty', 'reserved_qty', 'updated_at'])
+
+
+class PriceHistory(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='price_history')
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    compare_at_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-recorded_at']
+        indexes = [models.Index(fields=['product', 'recorded_at'])]
+
+    def __str__(self):
+        return f"{self.product.title} @ {self.price} ({self.recorded_at:%Y-%m-%d})"
