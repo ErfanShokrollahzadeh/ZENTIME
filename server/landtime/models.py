@@ -1,7 +1,11 @@
 from django.db import models
+from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+import random
+import string
 
 # Create your models here.
 
@@ -83,8 +87,25 @@ class Product(models.Model):
     rating_count = models.PositiveIntegerField(default=0)
     image = models.ImageField(
         upload_to="products/%Y/%m", blank=True, null=True)
+    # Basic SEO / marketing metadata (optional)
+    seo_title = models.CharField(max_length=255, blank=True)
+    seo_description = models.CharField(max_length=320, blank=True)
+    # Simple attributes placeholders (extend later or move to separate table if needed)
+    warranty_months = models.PositiveIntegerField(
+        default=24, help_text="Warranty length in months")
+    weight_grams = models.PositiveIntegerField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Custom queryset / manager for convenient filtering
+    class ProductQuerySet(models.QuerySet):
+        def active(self):
+            return self.filter(is_active=True, is_exist=True)
+
+        def available(self):
+            return self.active().filter(stock_qty__gt=0)
+
+    objects = ProductQuerySet.as_manager()
 
     def __str__(self):
         return self.title
@@ -99,7 +120,68 @@ class Product(models.Model):
                 slug = f"{base}-{i}"
                 i += 1
             self.slug = slug
+        # Auto-generate SKU if absent
+        if not self.sku:
+            base = ''.join(ch for ch in (
+                self.brand.name if self.brand else self.title) if ch.isalnum()).upper()[:6]
+            if not base:
+                base = "SKU"
+            # Add random suffix to reduce collision risk
+
+            def gen():
+                suffix = ''.join(random.choices(
+                    string.ascii_uppercase + string.digits, k=4))
+                return f"{base}-{suffix}"
+            candidate = gen()
+            while Product.objects.filter(sku=candidate).exclude(pk=self.pk).exists():
+                candidate = gen()
+            self.sku = candidate
+        # If compare_at_price is set but lower than price, swap or null it
+        if self.compare_at_price is not None and self.compare_at_price <= self.price:
+            # Keep logic simple: unset it rather than store invalid discount reference
+            self.compare_at_price = None
         return super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if self.compare_at_price is not None and self.compare_at_price <= self.price:
+            raise ValidationError({
+                "compare_at_price": "Must be greater than price to represent a discount."
+            })
+
+    @property
+    def discount_percent(self):
+        if self.compare_at_price and self.compare_at_price > self.price and self.price > 0:
+            return round(((self.compare_at_price - self.price) / self.compare_at_price) * 100, 2)
+        return 0
+
+    @property
+    def in_stock(self):
+        return self.stock_qty > 0 and self.is_active and self.is_exist
+
+    @property
+    def primary_image(self):
+        # Prefer explicitly marked primary; fallback to related images or legacy single image field
+        img = self.images.filter(is_primary=True).first()
+        return img or self.images.order_by('sort_order', 'id').first()
+
+    @property
+    def gallery(self):
+        # Structured list for API serialization convenience
+        images = []
+        if self.image:  # legacy single image
+            images.append({"url": self.image.url, "alt": self.title})
+        for im in self.images.all():
+            try:
+                images.append(
+                    {"url": im.image.url, "alt": im.alt_text or self.title})
+            except ValueError:
+                # image may not have a file yet
+                continue
+        return images
+
+    def get_absolute_url(self):
+        return f"/products/{self.slug}/"
 
     class Meta:
         indexes = [
@@ -107,7 +189,10 @@ class Product(models.Model):
             models.Index(fields=["sku"]),
             models.Index(fields=["is_active"]),
             models.Index(fields=["is_exist"]),
+            models.Index(fields=["price"]),
+            models.Index(fields=["created_at"]),
         ]
+        ordering = ["-created_at"]
 
 
 class ProductImage(models.Model):
@@ -120,6 +205,23 @@ class ProductImage(models.Model):
 
     class Meta:
         ordering = ["sort_order", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product"],
+                condition=Q(is_primary=True),
+                name="unique_primary_image_per_product",
+            )
+        ]
 
     def __str__(self):
         return f"Image #{self.pk} for {self.product.title}"
+
+    def save(self, *args, **kwargs):
+        # Default alt text
+        if not self.alt_text:
+            self.alt_text = self.product.title
+        super().save(*args, **kwargs)
+        # Ensure only one primary per product (if this one is primary)
+        if self.is_primary:
+            self.product.images.exclude(pk=self.pk).filter(
+                is_primary=True).update(is_primary=False)
