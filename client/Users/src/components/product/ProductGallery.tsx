@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 
 export default function ProductGallery({
@@ -14,13 +13,10 @@ export default function ProductGallery({
   return (
     <div className="space-y-3">
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-zinc-900">
-        <Image
+        <img
           src={current.src}
           alt={current.alt}
-          fill
-          className="object-cover"
-          sizes="(max-width: 1024px) 100vw, 40vw"
-          priority
+          className="absolute inset-0 h-full w-full object-cover"
         />
       </div>
       {images.length > 1 && (
@@ -35,7 +31,7 @@ export default function ProductGallery({
                   : "border-black/5 dark:border-white/10"
               }`}
             >
-              <Image src={img.src} alt={img.alt} fill className="object-cover" />
+              <img src={img.src} alt={img.alt} className="absolute inset-0 h-full w-full object-cover" />
             </button>
           ))}
         </div>

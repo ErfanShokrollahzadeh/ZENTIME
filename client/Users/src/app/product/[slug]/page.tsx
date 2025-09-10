@@ -28,8 +28,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) return notFound();
 
   const displayPrice = `$${product.price}`; // backend returns numeric string
+  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
+  const toAbsolute = (u: string) => (u.startsWith('http://') || u.startsWith('https://')) ? u : `${base}${u}`;
   const images = product.gallery?.length
-    ? product.gallery.map(i => ({ src: i.url, alt: i.alt }))
+    ? product.gallery.map(i => ({ src: toAbsolute(i.url), alt: i.alt }))
     : [{ src: '/placeholder.png', alt: product.title }];
 
   return (

@@ -15,9 +15,21 @@ class CategoryMinimalSerializer(serializers.ModelSerializer):
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
-        fields = ["id", "image", "alt_text", "is_primary", "sort_order"]
+        fields = ["id", "url", "alt_text", "is_primary", "sort_order"]
+
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if getattr(obj, 'image', None):
+            try:
+                url = obj.image.url
+                return request.build_absolute_uri(url) if request else url
+            except ValueError:
+                return None
+        return None
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -45,15 +57,19 @@ class ProductListSerializer(serializers.ModelSerializer):
         img = obj.primary_image
         if img and getattr(img, "image", None):
             try:
+                url = img.image.url
+                req = self.context.get('request')
                 return {
-                    "url": img.image.url,
+                    "url": req.build_absolute_uri(url) if req else url,
                     "alt": img.alt_text or obj.title,
                 }
             except ValueError:  # no file yet
                 pass
         if obj.image:
             try:
-                return {"url": obj.image.url, "alt": obj.title}
+                url = obj.image.url
+                req = self.context.get('request')
+                return {"url": req.build_absolute_uri(url) if req else url, "alt": obj.title}
             except ValueError:
                 return None
         return None
@@ -90,8 +106,10 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         img = obj.primary_image
         if img and getattr(img, "image", None):
             try:
+                url = img.image.url
+                req = self.context.get('request')
                 return {
-                    "url": img.image.url,
+                    "url": req.build_absolute_uri(url) if req else url,
                     "alt": img.alt_text or obj.title,
                     "is_primary": True,
                 }
@@ -99,14 +117,25 @@ class ProductDetailSerializer(serializers.ModelSerializer):
                 pass
         if obj.image:
             try:
-                return {"url": obj.image.url, "alt": obj.title, "is_primary": True}
+                url = obj.image.url
+                req = self.context.get('request')
+                return {"url": req.build_absolute_uri(url) if req else url, "alt": obj.title, "is_primary": True}
             except ValueError:
                 return None
         return None
 
     def get_gallery(self, obj):
-        # Use model helper for convenience
-        return obj.gallery
+        # Use model helper for convenience, but convert to absolute URLs
+        req = self.context.get('request')
+        gallery = []
+        for item in obj.gallery:
+            url = item.get('url')
+            if url:
+                gallery.append({
+                    'url': req.build_absolute_uri(url) if req else url,
+                    'alt': item.get('alt')
+                })
+        return gallery
 
     def get_url(self, obj):
         return obj.get_absolute_url()
