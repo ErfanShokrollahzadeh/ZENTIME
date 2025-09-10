@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 import type { ProductRecord } from "@/data/products";
 import { useMemo } from "react";
@@ -51,12 +50,11 @@ export function ProductsGrid({ products, filters }: ProductsGridProps) {
               <span className="absolute left-2 top-2 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur">-{discountPct}%</span>
             )}
             <div className="relative aspect-[4/5]">
-              <Image
+              <img
                 src={p.img}
                 alt={p.name}
-                fill
-                sizes="(min-width:1280px) 20vw, (min-width:1024px) 25vw, (min-width:640px) 45vw, 90vw"
-                className="object-cover transition duration-500 group-hover:scale-105"
+                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                loading="lazy"
               />
             </div>
             <div className="flex items-center justify-between px-4 py-3">

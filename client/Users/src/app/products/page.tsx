@@ -16,6 +16,10 @@ async function fetchProducts(): Promise<ProductRecord[]> {
   const data = await res.json();
   // DRF page schema: {count, next, previous, results: [...]}
   const items = Array.isArray(data) ? data : data.results || [];
+  const toAbsolute = (u?: string) => {
+    if (!u) return undefined;
+    return u.startsWith("http://") || u.startsWith("https://") ? u : `${base}${u}`;
+  };
   return items.map((p: any) => {
     const primary = p.primary_image || {};
     return {
@@ -23,7 +27,7 @@ async function fetchProducts(): Promise<ProductRecord[]> {
       name: p.title,
       slug: p.slug,
       brand: p.brand?.name || "",
-      img: primary.url || "/placeholder.png",
+  img: toAbsolute(primary.url) || "/images/collection/watch-aurum.svg",
       price: Number(p.price),
       originalPrice: p.compare_at_price ? Number(p.compare_at_price) : undefined,
       // Map rating_count as a stand-in for views until real analytics added

@@ -32,7 +32,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const toAbsolute = (u: string) => (u.startsWith('http://') || u.startsWith('https://')) ? u : `${base}${u}`;
   const images = product.gallery?.length
     ? product.gallery.map(i => ({ src: toAbsolute(i.url), alt: i.alt }))
-    : [{ src: '/placeholder.png', alt: product.title }];
+    : [{ src: '/images/collection/watch-aurum.svg', alt: product.title }];
 
   return (
     <div className="bg-background">
