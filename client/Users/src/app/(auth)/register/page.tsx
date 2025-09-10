@@ -20,7 +20,38 @@ export default function RegisterPage() {
             className="grid gap-4"
             action={async (formData: FormData) => {
               "use server";
-              // TODO: Implement server action to call your backend.
+              const first_name = String(formData.get("firstName") || "");
+              const last_name = String(formData.get("lastName") || "");
+              const email = String(formData.get("email") || "");
+              const password = String(formData.get("password") || "");
+              const base = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+              const res = await fetch(`${base}/api/auth/register/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ first_name, last_name, email, password }),
+              });
+              let data: any = null;
+              if (!res.ok) {
+                try { data = await res.json(); } catch {}
+                if (res.status === 400 && data?.detail?.toLowerCase?.().includes("already exists")) {
+                  // Email already registered: send user to login page instead of erroring
+                  const { redirect } = await import("next/navigation");
+                  redirect("/login?exists=1");
+                } else {
+                  console.error("Register failed", res.status, data);
+                  throw new Error("Register failed");
+                }
+              } else {
+                data = await res.json();
+              }
+              const token = data.token as string | undefined;
+              if (token) {
+                const { cookies } = await import("next/headers");
+                const jar = await cookies();
+                jar.set("auth_token", token, { httpOnly: true, sameSite: "lax", path: "/" });
+              }
+              const { redirect } = await import("next/navigation");
+              redirect("/");
             }}
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
