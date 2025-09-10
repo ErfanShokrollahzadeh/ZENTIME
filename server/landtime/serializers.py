@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Brand, Category, Product, ProductImage
+from .models import Brand, Category, Product, ProductImage, Profile
+from django.contrib.auth.models import User
+from rest_framework.validators import UniqueValidator
 
 
 class BrandSerializer(serializers.ModelSerializer):
@@ -157,3 +159,25 @@ class ProductWriteSerializer(serializers.ModelSerializer):
         if compare_at is not None and price is not None and compare_at <= price:
             attrs["compare_at_price"] = None  # normalize
         return attrs
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', required=False, validators=[
+                                   UniqueValidator(queryset=User.objects.all())])
+    first_name = serializers.CharField(
+        source='user.first_name', required=False)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+
+    class Meta:
+        model = Profile
+        fields = ['phone', 'email', 'first_name', 'last_name']
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        for attr, val in user_data.items():
+            setattr(instance.user, attr, val)
+        instance.user.save(update_fields=['email', 'first_name', 'last_name'])
+        for attr, val in validated_data.items():
+            setattr(instance, attr, val)
+        instance.save(update_fields=['phone'])
+        return instance

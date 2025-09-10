@@ -7,6 +7,7 @@ from .serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
     ProductWriteSerializer,
+    ProfileSerializer,
 )
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -15,6 +16,7 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
 from django.views.decorators.csrf import csrf_exempt
+from .models import Profile
 
 
 def home(request):  # Simple placeholder
@@ -63,6 +65,19 @@ def login(request):
 def me(request):
     user = request.user
     return Response({'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name})
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    prof, _ = Profile.objects.get_or_create(user=request.user)
+    if request.method == 'GET':
+        data = ProfileSerializer(prof).data
+        return Response(data)
+    serializer = ProfileSerializer(prof, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
 
 
 @api_view(['POST'])

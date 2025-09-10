@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import home, ProductViewSet, register, login, me, logout
+from .views import home, ProductViewSet, register, login, me, logout, profile
 
 router = routers.DefaultRouter()
 router.register('products', ProductViewSet, basename='product')
@@ -11,5 +11,6 @@ urlpatterns = [
     path('api/auth/register/', register, name='register'),
     path('api/auth/login/', login, name='login'),
     path('api/auth/me/', me, name='me'),
+    path('api/auth/profile/', profile, name='profile'),
     path('api/auth/logout/', logout, name='logout'),
 ]

@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 import random
 import string
 
@@ -401,3 +402,12 @@ class PriceHistory(models.Model):
 
     def __str__(self):
         return f"{self.product.title} @ {self.price} ({self.recorded_at:%Y-%m-%d})"
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=20, blank=True)
+
+    def __str__(self):
+        return f"Profile for {self.user.username}"
