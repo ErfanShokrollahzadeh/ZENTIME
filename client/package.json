@@ -1,0 +1,11 @@
+{
+  "name": "zentime-client",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix Users",
+    "build": "npm run build --prefix Users",
+    "start": "npm run start --prefix Users",
+    "lint": "npm run lint --prefix Users",
+    "postinstall": "npm ci --prefix Users || npm install --prefix Users"
+  }
+}
