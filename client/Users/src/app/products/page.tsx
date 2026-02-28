@@ -4,18 +4,37 @@ import { type ProductRecord } from "@/data/products";
 export const metadata = { title: "All products" };
 
 async function fetchProducts(): Promise<ProductRecord[]> {
-  const base = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
-  const res = await fetch(`${base}/api/products/?ordering=-created_at`, {
-    // Revalidate every 5 minutes (adjust as needed)
-    next: { revalidate: 300 },
-  });
-  if (!res.ok) {
-    console.error("Failed to load products", res.status);
+  const configuredBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+  const bases = [configuredBase];
+  if (configuredBase.includes("localhost")) {
+    bases.push(configuredBase.replace("localhost", "127.0.0.1"));
+  }
+
+  let res: Response | null = null;
+  let lastError: unknown = null;
+
+  for (const baseCandidate of [...new Set(bases)]) {
+    try {
+      res = await fetch(`${baseCandidate}/api/products/?ordering=-created_at`, {
+        next: { revalidate: 300 },
+      });
+      if (res.ok) break;
+      console.error("Failed to load products", res.status, "from", baseCandidate);
+    } catch (error) {
+      lastError = error;
+      console.error("Failed to reach products API at", baseCandidate, error);
+    }
+  }
+
+  if (!res || !res.ok) {
+    if (lastError) console.error("Products fetch error", lastError);
     return [];
   }
+
   const data = await res.json();
   // DRF page schema: {count, next, previous, results: [...]}
   const items = Array.isArray(data) ? data : data.results || [];
+  const base = configuredBase;
   const toAbsolute = (u?: string) => {
     if (!u) return undefined;
     return u.startsWith("http://") || u.startsWith("https://") ? u : `${base}${u}`;
