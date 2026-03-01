@@ -11,9 +11,10 @@ interface ProductsPageClientProps {
 }
 
 export function ProductsPageClient({ products }: ProductsPageClientProps) {
+  const maxProductPrice = products.length ? Math.max(...products.map((p) => p.price)) : 0;
   const initial: FiltersState = {
     brands: [],
-    maxPrice: Math.max(...products.map(p => p.price)),
+    maxPrice: maxProductPrice,
     sort: 'views',
     onlyDiscount: false,
   };

@@ -2,6 +2,7 @@ import { ProductsPageClient } from "@/components/products/ProductsPageClient";
 import { type ProductRecord } from "@/data/products";
 
 export const metadata = { title: "All products" };
+export const dynamic = "force-dynamic";
 
 async function fetchProducts(): Promise<ProductRecord[]> {
   const configuredBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
@@ -16,7 +17,7 @@ async function fetchProducts(): Promise<ProductRecord[]> {
   for (const baseCandidate of [...new Set(bases)]) {
     try {
       res = await fetch(`${baseCandidate}/api/products/?ordering=-created_at`, {
-        next: { revalidate: 300 },
+        cache: "no-store",
       });
       if (res.ok) break;
       console.error("Failed to load products", res.status, "from", baseCandidate);

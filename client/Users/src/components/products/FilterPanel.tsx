@@ -17,12 +17,12 @@ interface FilterPanelProps {
 
 export function FilterPanel({ products, value, onChange }: FilterPanelProps) {
   const brands = Array.from(new Set(products.map(p => p.brand))).sort();
-  const maxProductPrice = Math.max(...products.map(p => p.price));
+  const maxProductPrice = products.length ? Math.max(...products.map((p) => p.price)) : 0;
 
   const set = (partial: Partial<FiltersState>) => onChange({ ...value, ...partial });
 
   // Keyboard accessibility for range input displayed progress
-  const pct = Math.round((value.maxPrice / maxProductPrice) * 100);
+  const pct = maxProductPrice > 0 ? Math.round((value.maxPrice / maxProductPrice) * 100) : 0;
 
   return (
     <aside className="space-y-8">
